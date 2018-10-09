@@ -113,7 +113,7 @@ public class BinarySearchTree<E extends Comparable<E>> {
         }
     }
 
-    //前序遍历：首先访问根结点然后遍历左子树，最后遍历右子树。
+    //遍历：首先访问根结点然后遍历左子树，最后遍历右子树。
     public String order(Order order) {
         StringBuffer sb = new StringBuffer();
         switch (order) {
