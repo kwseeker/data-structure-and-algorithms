@@ -6,6 +6,7 @@
 
     <groupId>top.kwseeker</groupId>
     <artifactId>data-structure-and-algorithms</artifactId>
+    <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
 
     <build>
@@ -20,5 +21,9 @@
             </plugin>
         </plugins>
     </build>
+
+    <modules>
+        <module>sort-algorithm</module>
+    </modules>
 
 </project>
