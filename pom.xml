@@ -32,6 +32,10 @@
 
     <modules>
         <module>sort-algorithm</module>
+        <module>linear</module>
+        <module>tree</module>
+        <module>graph</module>
+        <module>leecode</module>
     </modules>
 
 </project>
