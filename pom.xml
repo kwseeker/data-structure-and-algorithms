@@ -31,7 +31,7 @@
     </build>
 
     <modules>
-        <module>sort-algorithm</module>
+        <module>sort-algo</module>
         <module>linear</module>
         <module>tree</module>
         <module>graph</module>
