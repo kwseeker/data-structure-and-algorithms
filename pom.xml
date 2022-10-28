@@ -36,6 +36,7 @@
         <module>tree</module>
         <module>graph</module>
         <module>leecode</module>
+        <module>basic</module>
     </modules>
 
 </project>
