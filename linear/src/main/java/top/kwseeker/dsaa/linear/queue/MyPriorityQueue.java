@@ -1,4 +1,4 @@
-package top.kwseeker.dsaa.basic.queue;
+package top.kwseeker.dsaa.linear.queue;
 
 /**
  * 优先队列

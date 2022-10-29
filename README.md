@@ -1,16 +1,38 @@
-## 数据结构与算法
+# 数据结构与算法
 
-详细文档参考各子目录下面的Markdown文本。
+各种数据结构和算法详细文档参考 docs。
 
-演示：
 
-[Data Structure Visualizations](https://www.cs.usfca.edu/~galles/visualization/Algorithms.html)
 
-推荐：
+## 学习问题探究
 
-[labuladong/fucking-algorithm](https://github.com/labuladong/fucking-algorithm)
++ 遗忘的问题
 
-[labuladong的算法小抄](https://labuladong.gitbook.io/algo/)
+  个人感觉还是底层原理、依赖的知识有空缺、没掌握牢固导致。
+
+
+
+## 参考
+
++ 演示网站：
+
+  [Data Structure Visualizations](https://www.cs.usfca.edu/~galles/visualization/Algorithms.html)
+
++ 书籍
+
+  《大话数据结构》
+
+  《剑指Offer》
+
+  《算法》
+
+  
+
++ 网络
+
+  [labuladong/fucking-algorithm](https://github.com/labuladong/fucking-algorithm)
+
+  [labuladong的算法小抄](https://labuladong.gitbook.io/algo/)
 
 
 

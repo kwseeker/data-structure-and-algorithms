@@ -1,8 +1,6 @@
-package top.kwseeker.dsaa.basic.queue;
+package top.kwseeker.dsaa.linear.queue;
 
 import org.junit.Test;
-
-import java.util.PriorityQueue;
 
 /**
  * java.util.PriorityQueue 测试

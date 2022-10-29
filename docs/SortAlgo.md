@@ -168,7 +168,7 @@
 
 ！注意下面图中有错误：选择排序是稳定的。
 
-![常用排序算法复杂度](imgs/common_sort_perfermance.png)
+![常用排序算法复杂度](img/common_sort_perfermance.png)
 
 
 
