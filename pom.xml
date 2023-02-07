@@ -41,6 +41,7 @@
         <module>tree</module>
         <module>graph</module>
         <module>leecode</module>
+        <module>algo-thought</module>
     </modules>
 
 </project>
