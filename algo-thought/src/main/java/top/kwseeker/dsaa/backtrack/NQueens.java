@@ -9,7 +9,8 @@ import java.util.*;
  */
 public class NQueens {
 
-    private static final int N = 4;
+    private static final boolean TRACE = true;
+    private static final int N = 8;
     private final List<int[]> solutions = new ArrayList<>();    //所有可行解的集合，外层是可行解的集合，内层数组是某个可行解
                                                                 // （数组本身就是个hashtable, 这里用索引代表某行，值代表皇后位于这行的某列）
 
@@ -21,24 +22,19 @@ public class NQueens {
 
     // 回溯法解决N皇后问题(这里使用树回溯，不是使用递归)
     private void solveByCallTrack() {
-        Node root = null;
+        Node root;
         for (int ci = 0; ci < N; ci++) {   //ci：第一行（idx=0）的第几列
             //开始的地方（第一列）
-            if (root == null) {
-                root = new Node(0, ci, null, null);
-            }
+            root = new Node(0, ci, null, null);
 
             //遍历并构造回溯树(一列列地判断可行的位置)
-            callTrack(ci, root);
+            callTrack(root);
+            System.out.println("-----------------");
         }
     }
 
-    private void callTrack(int column, Node root) {
+    private void callTrack(Node root) {
         //1 数据初始化
-        int[] board = new int[N];   //数组本身的索引代表行，值代表在某行的哪列, 存储已放置皇后的位置
-        Arrays.fill(board, -1);
-        //第一行已放入
-        board[0] = column;
         //下面三个集合是为了优化约束检查的性能引入并不是必须的，但是会影响代码可读性，暂不引入后面单独写个优化性能的示例
         //Set<Integer> columnOccupied = new HashSet<>();
         //Set<Integer> diagonals1 = new HashSet<>();
@@ -50,35 +46,39 @@ public class NQueens {
             for (int ci = 0; ci <= N; ci++) {   //(ri, ci)
                 //如果此行所有位置都是放不下，回溯(即找到parent节点(ci,ri+1)位置继续遍历)
                 if (ci == N) {
-                    if (parent == root)    //回溯到根节点说明已经遍历搜索完毕，退出
+                    if (parent == root) {       //回溯到根节点说明已经遍历搜索完毕，退出
+                        printTrace("finished");
                         return;
+                    }
                     ri = parent.rowIdx;
                     ci = parent.columnIdx;
                     parent = parent.parent;
-                    board[ri] = -1;
+                    parent.child = null;
+                    printTrace("call track: (%d, %d))", ri, ci);
                     continue;
                 }
                 //约束判断
-                if (!isSafe(board, ri, ci)) {
+                if (!isSafe(root, ri, ci)) {
                     continue;
                 }
                 //可放置
                 //即已经找到一个可行解,记录，并回溯（后面的位置不用看了肯定都不能放置）
                 if (ri == N-1) {
-                    int[] solution = Arrays.copyOf(board, board.length);
+                    printTrace("found one solution");
+                    int[] solution = root.solution();
                     solution[ri] = ci;
                     solutions.add(solution);
-                    ri = parent.columnIdx;
-                    ci = parent.rowIdx;
+                    ri = parent.rowIdx;
+                    ci = parent.columnIdx;
                     parent = parent.parent;
-                    board[ri] = -1;
+                    parent.child = null;
                     continue;
                 }
                 //记录当前可行位置，然后直接跳转下一列判断
                 Node node = new Node(ri, ci, parent, null);   //回溯点
                 parent.child = node;
                 parent = node;
-                board[ri] = ci;
+                printTrace("new node: (%d, %d))", ri, ci);
                 break;
             }
         }
@@ -88,20 +88,23 @@ public class NQueens {
      * 约束检查
      * 可以优化性能
      */
-    private boolean isSafe(int[] board, int ri, int ci) {
-        for (int i = 0; i < ri; i++) {
+    private boolean isSafe(Node root, int ri, int ci) {
+        for (Node node = root;;) {
             //同列约束
-            if (board[i] == ci) {
+            if (node.columnIdx == ci) {
                 return false;
             }
             //同斜线约束
             // (y2-y1) = 1*(x2-x1) 或 (y2-y1) = -1*(x2-x1)
             // 即 y2-x2 = y1-x1 或 y2+x2 = y1+x1
-            if ((board[i] + i == ci + ri) || (board[i] - i == ci - ri))  {
+            if ((node.rowIdx + node.columnIdx == ri + ci) || (node.rowIdx - node.columnIdx == ri - ci)) {
                 return false;
             }
+
+            if ((node = node.child) == null) {
+                return true;
+            }
         }
-        return true;
     }
 
     private void displaySolution() {
@@ -131,6 +134,22 @@ public class NQueens {
             this.columnIdx = columnIdx;
             this.parent = parent;
             this.child = child;
+        }
+
+        public int[] solution() {
+            int[] solution = new int[N];
+            Node node = this;
+            while (node != null) {
+                solution[node.rowIdx] = node.columnIdx;
+                node = node.child;
+            }
+            return solution;
+        }
+    }
+
+    private void printTrace(String fmt, Object ...args) {
+        if (TRACE) {
+            System.out.printf(fmt + "%n", args);
         }
     }
 }
