@@ -1,4 +1,4 @@
-package top.kwseeker.dsaa.tree.trie;
+package top.kwseeker.dsaa.tree;
 
 public class BinarySearchTree<T extends Comparable<T>> {
 

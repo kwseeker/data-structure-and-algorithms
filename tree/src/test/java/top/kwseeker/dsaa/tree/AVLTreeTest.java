@@ -1,6 +1,7 @@
-package top.kwseeker.dsaa.tree.trie;
+package top.kwseeker.dsaa.tree;
 
 import org.junit.Test;
+import top.kwseeker.dsaa.tree.AVLTree;
 
 public class AVLTreeTest {
 
