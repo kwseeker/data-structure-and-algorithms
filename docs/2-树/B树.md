@@ -37,6 +37,8 @@ B树定义（说结构特征更合适，来自维基百科）：
 
 + **B树节点是怎么存多个key和数据的？**
 
+  下面只是一种实现：
+
   B树节点定义中由一个K-V哈希桶存储key和数据。
 
   Demo实现中多个key和value，排序存入哈希桶。
@@ -76,11 +78,22 @@ B树定义（说结构特征更合适，来自维基百科）：
   ｝
   ```
 
-+ **B树增删节点后的平衡机制？**
++ **B树增删节点及平衡机制？**
 
   这个平衡机制也是有论文支撑的，这个是B树的核心也是难点。论文不好看，但是看不懂论文，下面的代码就算看完也不知道为何这么做，当然也肯定背不下来，还没见到面试让解释B树平衡机制的。
 
-  节点key数量达到m-1 (2t-1) 时，节点会分裂：中间的key会合并到父节点，分裂出来的两个节点还是保持在当前层，如果根节点满的话，根节点分裂，中间的key会新建一个节点作为根节点。
+  **插入**：
+
+  遍历到叶子节点插入，节点key数量达到m-1 (2t-1) 时，节点会分裂；中间的key（设keyA）会合并到父节点，分裂出来的两个节点还是保持在当前层，位于keyA左右两侧；如果父节点也满了父节点继续分裂（递归处理）；根节点分裂，中间的key会新建一个节点作为根节点（层数增加）。
+
+  **删除**：
+
+  如果是删除叶子节点的key, 删除后满足B树性质结束；
+  如果key少于m/2，向左右两边的兄弟借key（可以优先向左兄弟借，左兄弟不富余就向右兄弟借；优先向右兄弟借也可以规则不是死的只要满足B树性质即可），然后旋转（和平衡二叉树、红黑树的旋转类似，向右兄弟借就左旋转，向左兄弟借就右旋转）；
+
+  如果左右两边兄弟都不富余就向父亲借，然后兄弟合并（可以优先合并左边也可以优先合并右边）；
+
+  如果根节点只有一个key, 删除节点时被子节点借去，子节点合并，层数降低。
 
   ```java
   //kv插入
@@ -90,7 +103,7 @@ B树定义（说结构特征更合适，来自维基百科）：
       }
   
       ++mSize;
-     	//根节点满了的话分裂
+     	//根节点满了的话插不下去，根节点要分裂
       if (mRoot.mCurrentKeyNum == BTNode.UPPER_BOUND_KEYNUM) {
           BTNode<K, V> btNode = createNode();
           btNode.mIsLeaf = false;
@@ -98,13 +111,13 @@ B树定义（说结构特征更合适，来自维基百科）：
           mRoot = btNode;
           splitNode(mRoot, 0, btNode.mChildren[0]);
       }
-  	//
+  	//这时根节点是可以插入的
       insertKeyAtNode(mRoot, key, value);
       return this;
   }
   
-  //节点key满了分裂
-  //
+  //节点key满了分裂：
+  //中间的key（设keyA）合并到父节点，keyA左右分裂成两个新节点插入到keyA左右
   private void splitNode(BTNode parentNode, int nodeIdx, BTNode btNode) {
       int i;
   
@@ -154,9 +167,7 @@ B树定义（说结构特征更合适，来自维基百科）：
       ++(parentNode.mCurrentKeyNum);
   }
   
-  //
-  // Insert key and its value to the specified root
-  //
+  //从根节点往下遍历找到叶子节点插入，如果节点
   private void insertKeyAtNode(BTNode rootNode, K key, V value) {
       int i;
       int currentKeyNum = rootNode.mCurrentKeyNum;
