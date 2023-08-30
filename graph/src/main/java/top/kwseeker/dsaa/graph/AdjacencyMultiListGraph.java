@@ -5,7 +5,7 @@ package top.kwseeker.dsaa.graph;
  * 下面示例的数据结构（大话数据结构提供的一种演示数据结构）也仅仅只是演示，用到业务中除非数据很少，否则远远达不到性能要求。
  * 暂不考虑节点删除（数组本身就不适合做删除、扩缩容）、扩缩容、性能等等。
  */
-public class AdjacencyMultiListUndirectedGraph<T> {
+public class AdjacencyMultiListGraph<T> {
 
     private int capacity;   //数组容量
     private int vertex;     //顶点数量
@@ -13,7 +13,7 @@ public class AdjacencyMultiListUndirectedGraph<T> {
     private Node<T>[] nodes;
 
     public static void main(String[] args) {
-        AdjacencyMultiListUndirectedGraph<String> graph = new AdjacencyMultiListUndirectedGraph<>(4);
+        AdjacencyMultiListGraph<String> graph = new AdjacencyMultiListGraph<>(4);
         graph.addNode("V0");
         graph.addNode("V1");
         graph.addNode("V2");
@@ -28,7 +28,7 @@ public class AdjacencyMultiListUndirectedGraph<T> {
 
     }
 
-    public AdjacencyMultiListUndirectedGraph(int capacity) {
+    public AdjacencyMultiListGraph(int capacity) {
         if (capacity <= 0)
             throw new IllegalArgumentException("Illegal initial capacity: " + capacity);
         this.capacity = capacity;

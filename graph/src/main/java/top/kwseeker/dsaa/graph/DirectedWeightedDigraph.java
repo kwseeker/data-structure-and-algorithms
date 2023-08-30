@@ -3,7 +3,7 @@ package top.kwseeker.dsaa.graph;
 /**
  * 加权有向图
  */
-public class DirectedWeightedGraph {
+public class DirectedWeightedDigraph {
 
     public static void main(String[] args) {
 

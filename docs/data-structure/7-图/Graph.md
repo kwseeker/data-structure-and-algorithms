@@ -7,6 +7,8 @@
 > 顶点也有称为**结点**的，有向的边也称为**弧**(arc)。
 >
 > 带权的图也称为**网**。
+>
+> 算法的思路和细节证明是重点，这些理清后，代码实现反而简单。
 
 
 
@@ -42,13 +44,13 @@
 
 + 边是否有向
 
-  + **有向图**
+  + **有向图** （Digraph）
 
     + **有向完全图**
 
       在有向图中，任意两个顶点之间都存在方向且互为相反的两条弧（共n*(n-1)条弧）。
 
-  + **无向图**
+  + **无向图 **
 
     + **无向完全图**
 
@@ -313,7 +315,7 @@ typedef struct EdgeNode {
 
     **另外看下LeetCode.490迷宫**：
 
-    这个迷宫和上面的迷宫有一点不一样：<u>除非碰到墙否则不会停下</u>，其实抽象出来是个有向图（这个抽象过程才是最主要的），如下图；
+    这个迷宫和上面的迷宫有一点不一样：<u>除非碰到墙否则不会停下</u>，**其实抽象出来是个有向图（这个抽象过程才是最主要的），另外如果出口在某个不会停下来的点还需要再加个顶点**，如下图；
 
     使用DFS或BFS求解倒是和普通迷宫没有什么差别。
 
@@ -349,9 +351,118 @@ typedef struct EdgeNode {
 
 关于这个参考：《算法引论》**引理7.5：如果边(u,w)属于一颗BFS树，其中u是w的父母，则在具有导向w的边的顶点中，u具有最小的BFS数。**换句话就是说：<u>公认的BFS方法可以尽可能经历更少的步数找到目标顶点</u>。
 
+### 最小生成树
+
+用于解决**构建连通图问题**。以最小代价构造出的连通图就是最小生成树（这图看起来就是一颗树）。
+
+主要研究**无向加权连通图**。
+
+两种算法：Prim算法、Kruskal算法。
+
+使用场景：比如架设网路、电路、修筑公路，如何以最小的成本连接所有城镇。
+
+#### 基础理论
+
++ **切分定理**（核心）
+
+  **在一幅加权图中，给定任意的切分，它的横切边中权重最小者必然属于图的最小生成树**。
+
+  通过反证法证明。
+
+  横切边：将图的所有顶点分为两个非空且不重复的集合，横切边是一条连接两个属于不通集合的顶点的边。
+
+  假设所有边的权重均不相同的前提下，每幅连通图都只有一棵唯一的最小生成树。
+
++ **贪心算法**
+
+  求解最小生成树的过程是贪心算法的特殊情况：使用切分定理找到最小生成树的一条边，不断重复直到找到最小生成树的所有边。
+  
+  后面的两种经典算法也属于贪心算法的思想。
+
++ **边权重值相同的处理**
+
+  如果这两条边之间不会比较无妨（比如没有共同的顶点），否则从权重值相同的边中每次选一条重新构造子图，计算每个子图的最小生成树，最后比较。
+
+#### Prim算法
+
+Prim算法流程：从任意一个顶点开始，假设将其计为T, 找与T邻接的所有顶点及对应的边，选择其中权重最小的边和顶点加入T，然后重复，直到找到V-1条边。
+
+《算法》的这张配图还是很形象的。
+
+![](../../img/Graph-Prim.png)
+
+理解清流程（这个才是重点）后，代码实现其实比较简单, 参考测试Demo: `PrimLazyMSTTest#testLazyMST()`。
+
+```java
+private Queue<Edge> mst;     // edges in the MST
+private boolean[] marked;    // marked[v] = true iff v on tree
+private double weight;       // total weight of MST
+private MinPQ<Edge> pq;      // edges with one endpoint in tree
+
+private void prim(AdjacencyListWeightedGraph G, int s) {
+    //1 扫描所有连接顶点s的边，加入到优先队列pq，（这里用优先队列提升每次筛选权重最小边的效率）
+    scan(G, s);
+    while (!pq.isEmpty()) {                        // better to stop when mst has V-1 edges
+        //2 筛选权重最小的边并从优先队列中删除(pq中保留其他几条边)
+        pq.print();
+        StdOut.println("----------------------");
+        Edge e = pq.delMin();                      // smallest edge on pq
+        //3 将筛选出的边和顶点加入最小生成树
+        int v = e.either(), w = e.other(v);        // two endpoints
+        assert marked[v] || marked[w];
+        if (marked[v] && marked[w]) continue;      // lazy, both v and w already scanned
+        mst.enqueue(e);                            // add e to MST
+        weight += e.weight();
+        //4 扫描新的最小生成树外围边，由于之前扫描的边还保留着（第2步），这次只需要扫描新增顶点的外围边即可
+        if (!marked[v]) scan(G, v);               // v becomes part of tree
+        if (!marked[w]) scan(G, w);               // w becomes part of tree
+    }
+}
+```
+
+**算法优化**：
+
+上面算法第2步只是将加入最小生成树的边从队列中删除了，但是实际可能还可以删除更多无效的边，比如上面的配图，从上到下有7条边（前面的扫描会将这些边加入优先队列），上面算法经过这轮计算只是刷选出了第4条并从优先队列中删除加入了最小生成树，**其实第3条也无效了可以从优先队列中删除，第1条和第2条、第6条和第7条都可以二选一选权重小的保留在优先队列中**（甚至扫描阶段都不应该将这些失效的边加进来），从而可以减少空间占用和计算效率。
+
+优化后的扫描算法（用到了索引优先队列）：
+
+```java
+private Edge[] edgeTo;        // edgeTo[v] = shortest edge from tree vertex to non-tree vertex
+private double[] distTo;      // distTo[v] = weight of shortest such edge
+private boolean[] marked;     // marked[v] = true if v on tree, false otherwise
+private IndexMinPQ<Double> pq;	//值越小优先级越高在数组中的索引越小
+
+private void scan(AdjacencyListWeightedGraph G, int v) {
+    marked[v] = true;
+    for (Edge e : G.adj(v)) {
+        int w = e.other(v);
+        if (marked[w]) continue;         // v-w is obsolete edge
+        if (e.weight() < distTo[w]) {
+            distTo[w] = e.weight();
+            edgeTo[w] = e;
+            //上面可能失效的边根本就不会加进来
+            if (pq.contains(w)) pq.decreaseKey(w, distTo[w]);
+            else                pq.insert(w, distTo[w]);
+        }
+    }
+}
+```
+
+#### Kruskal算法
+
+**Prim算法思想**：对含V个顶点的加权无向图，将边按权重从小到大排序，从最小权重的边开始加入最小生成树，每次加入边需要避免生成环（生成环的话去掉最后加入的边），直到树中含有V-1条边。
+
+**环的判断**：判断并查集是否相交（这个其实是重点）。
+
+这个算法相比Prim算法更容易理解。
+
+Krusakal算法 比 Prim算法一般还是要慢一些，因为每次还需要进行一次连接操作（即避免生成环的操作）。
+
+测试Demo: `KruskalMSTTest#testMST()`。
+
 ### 最短路径 & 最长路径
 
-解决**从顶点A到顶点B获取最短或最长路径问题**。另外可能还需要考虑有向、加权、负权重的影响。
+解决**从顶点A到顶点B获取最短或最长路径问题**。另外可能还需要考虑有向、权重、负权重的影响。
 
 注意：
 
@@ -360,17 +471,25 @@ typedef struct EdgeNode {
 
 以s为起点的一颗最短路径树是图的一副子图，包含从s和从s可达的左右顶点。
 
+这里主要研究**加权有向图**。
+
+> BFS 求解加权图的最短路径就显得乏力了。
+
+#### 基础理论
+
++ 边松弛
++ 顶点松弛
++ 最优性条件
+
 #### 迪杰斯特拉（Dijkstra）算法
 
+适用于解决**权重非负的加权有向图的单起点最短路径问题**。
 
 
 
+#### Bellman-Ford 算法
 
-### 最小生成树 & 最大生成树
-
-用于解决**构建连通图问题**。以最小代价构造出的连通图就是最小生成树（这图看起来就是一颗树）。
-
-两种算法：Prim算法、Kruskal算法。
+**权重可为负、可以包含环**。
 
 
 
@@ -388,6 +507,12 @@ typedef struct EdgeNode {
 
 
 
+### 网络流问题
+
+#### 网络流算法
+
+
+
 ## 一些图的实际问题
 
 ### 哥尼斯堡桥问题（欧拉图）
@@ -396,5 +521,8 @@ typedef struct EdgeNode {
 
 ## LeetCode图相关的题目
 
-+ LeetCode.490.迷宫
++ **LeetCode.490.迷宫**
+
+  其实就是有向图的遍历。
+
 + ...

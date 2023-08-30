@@ -1,6 +1,7 @@
 package top.kwseeker.dsaa.graph;
 
 import java.util.*;
+import java.util.Queue;
 
 /**
  * 邻接矩阵实现的加权图，邻接矩阵支持同时表示有向和无向（无向用两个平行有向边表示）
