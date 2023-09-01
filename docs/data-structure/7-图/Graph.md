@@ -116,6 +116,15 @@ typedef struct EdgeNode {
 } EdgeNode;						//边节点
 ```
 
+《算法》中提供的数据结构
+
+```java
+private final int V;                // number of vertices in this digraph
+private int E;                      // number of edges in this digraph
+private Bag<DirectedEdge>[] adj;    // adj[v] = adjacency list for vertex v
+private int[] indegree;             // indegree[v] = indegree of vertex v
+```
+
 还有**逆邻接表**，边只记录入边。
 
 优点：节省空间；
@@ -478,38 +487,166 @@ Krusakal算法 比 Prim算法一般还是要慢一些，因为每次还需要进
 #### 基础理论
 
 + 边松弛
+
 + 顶点松弛
-+ 最优性条件
+
++ **最短路径的最优性条件**
+
+  当且仅当对于从v到w的任意一条边e（v,w是相邻的顶点）， 都满足distTo[w] <= distTo[v] + e.weight() 时，它们是最短路径的长度。
+
+  > distTo[w] <= distTo[v] + e.weight() 反过来就是 **distTo[w] > distTo[v] + e.weight() 就一定不是最短路径长度，接着就是要做松弛操作**。
+  >
+  > distTo[v] 表示从起点s到顶点v的某条路径的长度。
+
++ **通用最短路径算法**
+
+  将distTo[s]初始化为0，其他distTo[]元素初始化为无穷大，继续如下操作：放松G中的任意边，直到不存在有效边为止。
+
+  对于任意从s可达的顶点w，在进行这些操作之后，distTo[w]的值即为从s到w的最短路径的长度。
 
 #### 迪杰斯特拉（Dijkstra）算法
 
-适用于解决**权重非负的加权有向图的单起点最短路径问题**。
+适用于解决**权重非负的加权图的单起点最短路径问题**。
 
+**为何无法用于负权重的图的计算**？这其实是Dijkstra算法正常执行的前提，负权重边可能导致算法选择错误的路径，而负权重环会使得算法陷入无限循环。
 
+比如一个带负权重边的无向图： G=(V,{E}) , V = {A,B,C}, E={(A,B,4), (B,C,-3), (A,C,5)}，计算过程中会在B、C间反复横跳。
+
+##### 加权无向图 Dijkstra 求解最短路径
+
+其实就是 **深度优先遍历** + **边松弛**。
+
+```java
+//逻辑：
+//从起点开始，每次计算从起点到每个邻接顶点的边的距离，如果比之前的距离短则更新记录；
+//从邻接顶点中选择最近的顶点，作为新的起点，重复上面步骤；直到遍历完成
+pq = new IndexMinPQ<Double>(G.V());
+pq.insert(s, distTo[s]);
+while (!pq.isEmpty()) {
+    int v = pq.delMin();    //pq存储各顶点距离起点的排名，选择最近的顶点作为新的起点
+    StdOut.println("delMin: " + v);
+    for (Edge e : G.adj(v)) //选择一顶点深入，其实相当于DFS遍历
+        relax(e, v);
+}
+
+private void relax(Edge e, int v) {
+    int w = e.other(v);
+    if (distTo[w] > distTo[v] + e.weight()) {   //之前的路径一定不是最短路径，变更为这条更短的路径的距离
+        StdOut.println("relax: [" + w + "]: " + distTo[w] +  "->" + (distTo[v] + e.weight()));
+        distTo[w] = distTo[v] + e.weight();
+        edgeTo[w] = e;
+        if (pq.contains(w))
+            pq.decreaseKey(w, distTo[w]);       //优先队列重新排名
+        else
+            pq.insert(w, distTo[w]);
+    }
+}
+//求解过程：
+// delMin: 0
+// relax: [6]: Infinity->0.58
+// relax: [2]: Infinity->0.26
+// relax: [4]: Infinity->0.38
+// relax: [7]: Infinity->0.16
+// delMin: 7
+// relax: [1]: Infinity->0.35
+// relax: [5]: Infinity->0.44000000000000006	//浮点数精度问题不影响
+// delMin: 2
+// relax: [3]: Infinity->0.43000000000000005
+// delMin: 1
+// delMin: 4
+// delMin: 3
+// delMin: 5
+// delMin: 6
+//求解结果：
+// 0 to 0 (0.00)  
+// 0 to 1 (0.35)  1-7 0.19000   0-7 0.16000   
+// 0 to 2 (0.26)  0-2 0.26000   
+// 0 to 3 (0.43)  2-3 0.17000   0-2 0.26000   
+// 0 to 4 (0.38)  0-4 0.38000   
+// 0 to 5 (0.44)  5-7 0.28000   0-7 0.16000   
+// 0 to 6 (0.58)  6-0 0.58000   
+// 0 to 7 (0.16)  0-7 0.16000
+```
+
+##### 加权有向图 Dijkstra 求解最短路径
+
+和无向图的求解差别不大，只是查询邻接顶点不一样。
 
 #### Bellman-Ford 算法
 
 **权重可为负、可以包含环**。
 
+**理论依据**：
 
+当且仅当加权有向图中至少存在一条从s到v的有向路径且所有从s到v的有向路径上任意顶点都不存在于任何**负权重环**中时，s到v的最短路径才是存在的（这个很好理解，因为会造成死循环）。
+
+**负权重图的最短路径问题**转化为**负权重环不可达时的最短路径**问题。
+
+算法包含两部分：
+
++ 负权重环的检测（从某个点开始DFS，重复出现已访问过的顶点就是有环）
++ 遍历 +边松弛
+
+#### Floyd-Warshall 算法
+
+待补充...
 
 ### 拓扑排序
 
-用于**优化工程管理问题（关注任务排布）**。比如软件开发过程中有很多子任务，有些任务有先后顺序依赖。如何管理以最快的效率排班任务。
+拓扑排序将**无环有向图**中所有顶点转成一种线性的次序，满足顶点按边的方向排序。
+
+用于**优化工程管理问题（关注任务排布）**。比如软件开发过程中有很多子任务，有些任务有先后顺序依赖。如何安排工作顺序。
+
+两种算法实现（思路很容易理解）：
+
++ **[入度数组](https://www.cs.usfca.edu/~galles/visualization/TopoSortIndegree.html)**
+
+  从图中选择入度为0的顶点输出，然后删除此顶点，并删除以此顶点为尾的弧（更新入度个数）。继续重复此步骤，直到输出全部顶点或者不存在入度为0的顶点为止。
+
++ **[DFS](https://www.cs.usfca.edu/~galles/visualization/TopoSortDFS.html)**
+
+  在DFS过程中判断遍历到的顶点的出度，将出度为0或者所有出边顶点都已经记录的顶点插入栈。继续重复此步骤遍历，最后将顶点出栈即拓扑排序结果。
 
 《算法导论》22.4 章节举了个穿衣服的例子，可以模拟实现下。
 
+比如以《算法》中提供的有向图数据结构为例
 
+```java
+private final int V;                // number of vertices in this digraph
+private int E;                      // number of edges in this digraph
+private Bag<DirectedEdge>[] adj;    // adj[v] = adjacency list for vertex v
+private int[] indegree;             // indegree[v] = indegree of vertex v
+```
 
-### 关键路径
+### 关键路径（最长路径）
 
-用于**计算拓扑排序中耗时最长的路径（关注效能）**，比如计算项目耗时时间。
+用于计算**从起点到终点最长的路径的耗时时间（关注整体效能）**；比如预估项目耗时时间，项目完成的最短时间取决于耗时最长的生产线。
 
+修改**最短路径的最优性条件**中的条件，即可推证获取最长路径的最优性条件。
 
+**算法原理**：（和Dijkstra边松弛操作条件相反）先求出拓扑排序，然后按排序结果从顶点开始依次添加邻接顶点和边，并计算路径耗时，**当有多条路径相交于一个顶点时保留最长路径，让较短的边失效**（只是失效较短路径中最后加入的边），重复执行，最后保留下来的从顶点到终点的边组成关键路径（最长路径）。
 
 ### 网络流问题
 
 #### 网络流算法
+
+**网络**，其实就是一张有向图，其上的边权称为容量。额外地，它拥有一个源点和汇点。
+
+**流**，如果把网络想象成一个自来水管道网络，那流就是其中流动的水。每条边上的流不能超过它的容量，并且对于除了源点和汇点外的所有点（即中继点），流入的流量都等于流出的流量。
+
+网络流中最常见的问题就是**网络最大流**。假定从源点流出的流量足够多，求能够流入汇点的最大流量。
+
+#### Ford-Fulkerson算法
+
+待补充...
+
+#### Edmond-Karp算法
+
+待补充...
+
+#### Dinic算法
+
+待补充...
 
 
 
