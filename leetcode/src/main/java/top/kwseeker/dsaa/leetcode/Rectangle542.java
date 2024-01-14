@@ -1,4 +1,4 @@
-package top.kwseeker.dsaa.leecode;
+package top.kwseeker.dsaa.leetcode;
 
 /**
  * 这其实是一个图的遍历问题

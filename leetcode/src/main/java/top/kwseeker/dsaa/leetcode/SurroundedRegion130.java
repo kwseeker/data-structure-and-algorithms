@@ -1,4 +1,4 @@
-package top.kwseeker.dsaa.leecode;
+package top.kwseeker.dsaa.leetcode;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

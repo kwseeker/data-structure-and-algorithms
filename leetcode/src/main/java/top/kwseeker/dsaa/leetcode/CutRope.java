@@ -1,4 +1,4 @@
-package top.kwseeker.dsaa.leecode;
+package top.kwseeker.dsaa.leetcode;
 
 /**
  * 给你一根长度为n绳子，请把绳子剪成m段（m、n都是整数，n>1并且m≥1）。每段的绳子的长度记为k[0]、k[1]、……、k[m]。k[0]*k[1]*…*k[m]可能的最大乘积是多少？

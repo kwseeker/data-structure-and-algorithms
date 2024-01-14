@@ -1,4 +1,4 @@
-package top.kwseeker.dsaa.leecode;
+package top.kwseeker.dsaa.leetcode;
 
 public class DecimalComplementCode1009 {
 

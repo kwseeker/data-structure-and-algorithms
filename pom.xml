@@ -40,7 +40,7 @@
         <module>linear</module>
         <module>tree</module>
         <module>graph</module>
-        <module>leecode</module>
+        <module>leetcode</module>
         <module>algo-thought</module>
     </modules>
 
