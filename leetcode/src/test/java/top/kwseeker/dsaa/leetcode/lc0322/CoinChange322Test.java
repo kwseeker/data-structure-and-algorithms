@@ -24,11 +24,11 @@ public class CoinChange322Test {
     }
 
     @Test
-    public void testMaxArea() {
+    public void testCoinChange() {
         CoinChange322 instance = new CoinChange322();
         CASES.forEach((config, expect) -> {
             int result = instance.coinChange(config.coins, config.amount);
-            assertEquals(result, expect.intValue());
+            assertEquals(expect.intValue(), result);
         });
     }
 
